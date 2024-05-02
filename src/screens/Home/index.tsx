@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { View } from "react-native";
+
 import { StatusBar } from "expo-status-bar";
 import { Foundation } from "@expo/vector-icons";
 
@@ -10,6 +11,11 @@ import { Input } from "../../components/Input";
 import { Checkbox } from "../../components/CheckBox";
 import { ContentMenu } from "../../components/ContentMenu";
 import { DeleteButton } from "../../components/DeleteButton";
+
+import { tasksGetAll } from "../../storage/task/tasksGetAll";
+import { taskCreate } from "../../storage/task/taskCreate";
+import { taskRemoveById } from "../../storage/task/taskRemoveById";
+import { updateTasksInStorage } from "../../storage/task/taskUpdate";
 
 import { styles } from "./styles";
 
@@ -21,29 +27,42 @@ type Task = {
 
 export function Home() {
   const [taskList, setTaskList] = useState<Task[]>([]);
-  // { task: "Limpar a casa", fullfiled: false },
-  // { task: "Lavar o carro", fullfiled: false },
+  // { task: "Limpar a casa", iscompleted: false },
+  // { task: "Lavar o carro", iscompleted: false },
 
-  const handleCheckboxChange = (index: any) => {
+  async function fetchTasks() {
+    try {
+      const data = await tasksGetAll();
+      setTaskList(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const handleCheckboxChange = async (index: any) => {
     const updatedTasks = taskList.map((item, idx) => {
       if (idx === index) {
-        return { ...item, fullfiled: !item.iscompleted };
+        return { ...item, iscompleted: !item.iscompleted };
       }
       return item;
     });
     setTaskList(updatedTasks);
+    await updateTasksInStorage(updatedTasks);
   };
 
-  function handleDelete(index: any) {
+  const handleDelete = async (index: number) => {
+    const taskToDelete = taskList[index];
+    await taskRemoveById(taskToDelete.id);
     setTaskList((prev) => prev.filter((_, idx) => idx !== index));
-  }
+  };
 
-  const addTask = (newTask: string) => {
-    const newId = taskList.length + 1;
-    setTaskList([
-      ...taskList,
-      { id: newId, task: newTask, iscompleted: false },
-    ]);
+  const addTask = async (newTask: string) => {
+    await taskCreate(newTask);
+    fetchTasks(); // Recarrega as tarefas após adicionar uma nova
   };
 
   return (

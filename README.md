@@ -18,8 +18,14 @@ Este app serve para organização e listagem de tarefas diárias.
 Este é um desafio opcional da trilha Reac Native da Rocketseat.
 </p>
 
+<h3>Melhorias</h3>
+<p>
+Foi implementada a persistência das tarefas com async-storage
+</p>
+
 <h2> Principais tecnologias envolvidas </h2>
 
 - React Native
 - Expo
 - Stylesheets (RN)
+- react-native-async-storage
